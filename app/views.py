@@ -96,7 +96,6 @@ def modify_annotation():
     if request.method == "POST":
         data = json.loads(request.data)
         token_id = data['id']
-        print(data)
         if str(token_id).startswith("#"):
             # New annotation provides from Recogito with UUID
             token = Annotation.query.filter_by(mention=data['mention'],
@@ -104,7 +103,6 @@ def modify_annotation():
                                                offset_start=data['start'],
                                                offset_end=data['end']).first()
             # Then update label here ...
-            print(token)
             token.label = data['updatedLabel']
 
         else:

@@ -219,7 +219,7 @@
     r.loadAnnotations("/annotations");
 
     const ResetAllDemoAnnotsBtn = document.getElementById("added-all-annotations");
-    ResetAllDemoAnnotsBtn.onclick = reloadDemoAnnotations;
+    ResetAllDemoAnnotsBtn.onclick = window.onload = reloadDemoAnnotations;
 
     function reloadDemoAnnotations(){
         r.clearAnnotations();

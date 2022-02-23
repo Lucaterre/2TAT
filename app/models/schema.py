@@ -79,6 +79,4 @@ def populate_database():
 
     db.session.commit()
 
-populate_database()
-
 
