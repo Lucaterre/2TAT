@@ -1,0 +1,22 @@
+[ {
+      "@context": "http://www.w3.org/ns/anno.jsonld",
+      "id": "1",
+      "type": "Annotation",
+      "body": [{
+        "type": "TextualBody",
+        "value": "PERSON",
+        "purpose": "tagging"
+      }],
+      "target": {
+        "selector": [{
+          "type": "TextQuoteSelector",
+          "exact": "Victor-Marie Hugo"
+        }, {
+          "type": "TextPositionSelector",
+          "start": 0,
+          "end": 17
+        }]
+      }
+    }
+
+]
