@@ -4,8 +4,8 @@
 
 Work in progress....
 
-2TAT (Tiny Text Annotation Template) :  a customized text annotator (eg. named entity task) canvas using Flask-[RecogitoJS](https://github.com/recogito/recogito-js)
+2TAT (Tiny Text Annotation Template) :  a customized text annotator (eg. named entity task) canvas using Flask-<a href="https://github.com/recogito/recogito-js" target="_blank">RecogitoJS</a>
 
-Demo [here](https://ttat-demo-app.herokuapp.com/)
+Demo <a href="https://ttat-demo-app.herokuapp.com/" target="_blank">here</a>
 
 
