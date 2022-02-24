@@ -589,7 +589,6 @@
                     el.setAttribute('style', 'display: none !important');
                 }
             }
-
         }*/
         //else{
 
@@ -607,8 +606,6 @@
             document.querySelectorAll('ul').forEach(function(ul, index){
             ul.style.display = "none";
         })
-
-
             for (var i = 0; i < elements.length; i ++) {
                 var el = elements[i];
                 el.setAttribute('style', 'display: ""');
@@ -617,10 +614,7 @@
                 ul.style.display = "block"
             })
             document.getElementById('myInput').value = "";
-
-
         }else{
-
              document.getElementById('myInput').value = "";
         }
         // this wil grab all <li> elements from all <ul> elements on the page
@@ -651,4 +645,3 @@
 
 
 })();
-

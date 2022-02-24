@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Title</title>
 
@@ -88,7 +89,6 @@
       opacity:0.5;
       margin:4px;
     }
-
     .colorselector-widget button.selected,
     .colorselector-widget button:hover {
       opacity:1;
@@ -102,15 +102,27 @@
 </style>
 <body>
 
-
+<div class="container-fluid">
+    <div class="row">
+        <div class="col">
+            <h1>2TAT (<i>Tiny Text Annotator Template</i>)</h1>
+            <br>
+            <p>{{ message_info }}</p>
+            <button id="added-all-annotations" class="btn btn-info" style="height: 50px; width:215px;">Reset demo annotations</button>
+            <button id="remove-all-annotations" class="btn btn-danger" style="height: 50px; width:215px;">Remove all annotations</button>
+            <br>
+            <br>
+        </div>
+    </div>
+</div>
 
 
 <div class="container-fluid">
-<div class="row">
-    <div class="col">
-        <a class="github-fork-ribbon" href="https://github.com/Lucaterre/2TAT" target="_blank" data-ribbon="Fork me on GitHub" title="Fork me on GitHub">Fork me on GitHub</a>
+    <div class="row">
+        <div class="col">
+            <a class="github-fork-ribbon" href="https://github.com/Lucaterre/2TAT" target="_blank" data-ribbon="Fork me on GitHub" title="Fork me on GitHub">Fork me on GitHub</a>
+        </div>
     </div>
-</div>
     <div class="row">
         <div class="col-3">
 
@@ -118,18 +130,18 @@
             <hr>
             <div id="number-annotations">
                 <input type="text" id="myInput"  placeholder="Search for annotations..">
-            <input id="clear-input-text" type="submit" value="clear">
-            <br>
-            <br>
+                <input id="clear-input-text" type="submit" value="clear">
+                <br>
+                <br>
                 {% for label, color in mapping.items() %}
                     <span id="entityLabel" class="{{ label }}">{{label}}<!-- <i class="fa fa-angle-down" style="font-size: 13px"></i>--></span>
                     <span id="entityLabelCount-{{ label }}">0</span>
                     <ul id="list-{{ label }}" class="list-group" style="display: none">
                         {% for mention, count in stats_mention[label] %}
                             <li id="list-{{ label }}-{{ mention }}" class="list-state list-group-item d-flex justify-content-between align-items-center">
-                            <button id="remove/$-$/{{ label }}/$-$/{{ mention }}" class="btn btn-danger btn-sm btn-remove"><i class="fa fa-times" style="font-size: 13px"></i></button>
+                                <button id="remove/$-$/{{ label }}/$-$/{{ mention }}" class="btn btn-danger btn-sm btn-remove"><i class="fa fa-times" style="font-size: 13px"></i></button>
                                 {{ mention }}
-                                    <span id="list-badge-{{ label }}-{{ mention }}" class="badge">{{ count }}</span>
+                                <span id="list-badge-{{ label }}-{{ mention }}" class="badge">{{ count }}</span>
                             </li>
                         {% endfor %}
                     </ul>
@@ -138,20 +150,20 @@
                 {% endfor %}
             </div>
         </div>
-        <div class="col-7">
+        <div class="col-8">
             <h2><i class="fa fa-file"></i> Text</h2>
             <hr>
-            <pre class="selection"  id="text" style="font-size:15px; text-align: justify; padding:1em 0.5em;line-height: 2em;  margin: 0; overflow:auto; white-space: pre-wrap; font-family: monospace">{{ text }}</pre></div>
+            <pre class="selection"  id="text" style="font-size:15px; text-align: justify; padding:1em 0.5em;line-height: 2em;  margin: 0; height: 50em; overflow-y:auto; white-space: pre-wrap; font-family: monospace">{{ text }}</pre>
+        </div>
         <!-- <div id="entity_type"></div> -->
         <div class="col">
-            <h2><i class="fa fa-star"></i> Options</h2>
-            <hr>
-            <button class="btn btn-dark" id="zoomIn"><i class="fa fa-search-plus"></i></button>
-            <button class="btn btn-dark" id="zoomOut"><i class="fa fa-search-minus"></i></button>
-            <br>
-            <hr>
-            <button id="added-all-annotations" class="btn btn-info" style="height: 50px; width:230px;">Reset demo annotations</button>
-            <button id="remove-all-annotations" class="btn btn-danger" style="height: 50px; width:230px;">Remove all annotations</button>
+            <div style="position: fixed">
+                <br>
+                <br>
+                <button class="btn btn-dark" id="zoomIn"><i class="fa fa-search-plus"></i></button>
+                <br>
+                <button class="btn btn-dark" id="zoomOut"><i class="fa fa-search-minus"></i></button>
+                </div>
         </div>
     </div>
 </div>

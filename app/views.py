@@ -1,33 +1,48 @@
 import json
 
 from flask import render_template, request, jsonify
-from app.models.schema import Annotation, populate_database
+from app.models.schema import Annotation, Text, Mapping, populate_database
 
 from app.app import (
     app, db
 )
 
+from run import LOCAL, SERVER
 
-text = """
-Victor-Marie Hugo est le fils du général d'Empire Joseph Léopold Sigisbert Hugo (1773-1828), créé comte, selon la tradition familiale, par Joseph Bonaparte, roi d'Espagne, capitaine en garnison dans le Doubs au moment de la naissance de son fils, et de Sophie Trébuchet (1772-1821), issue de la bourgeoisie nantaise. 
-En 1817, Victor Hugo a quinze ans lorsqu'il participe à un concours de poésie organisé par l'Académie française sur le thème Bonheur que procure l’étude dans toutes les situations de la vie.
-De 1830 à 1843, Victor Hugo se consacre presque exclusivement au théâtre. Il continue cependant d'écrire des poèmes pendant cette période et en publie plusieurs recueils : Les Feuilles d'automne (1831), Les Chants du crépuscule (1835), Les Voix intérieures (1837), Les Rayons et les Ombres (1840). 
-"""
 
-mapping = {
-        "PERSON" : "#ef6d62",
-        "LOCATION" : "#4d8fbb",
-        "TITLE" : "#45b39d",
-        "ORGANISATION" : "#9b59b6",
-        "WORK" : " #f4d03f"
-    }
 
+#text = """
+#Victor-Marie Hugo est le fils du général d'Empire Joseph Léopold Sigisbert Hugo (1773-1828), créé comte, selon la tradition familiale, par Joseph Bonaparte, roi d'Espagne, capitaine en garnison dans le Doubs au moment de la naissance de son fils, et de Sophie Trébuchet (1772-1821), issue de la bourgeoisie nantaise.
+#En 1817, Victor Hugo a quinze ans lorsqu'il participe à un concours de poésie organisé par l'Académie française sur le thème Bonheur que procure l’étude dans toutes les situations de la vie.
+#De 1830 à 1843, Victor Hugo se consacre presque exclusivement au théâtre. Il continue cependant d'écrire des poèmes pendant cette période et en publie plusieurs recueils : Les Feuilles d'automne (1831), Les Chants du crépuscule (1835), Les Voix intérieures (1837), Les Rayons et les Ombres (1840).
+#"""
+
+#mapping = {
+#        "PERSON" : "#ef6d62",
+#        "LOCATION" : "#4d8fbb",
+#        "TITLE" : "#45b39d",
+#        "ORGANISATION" : "#9b59b6",
+#        "WORK" : " #f4d03f"
+#    }
+
+
+INFO_MESSAGE_LOCAL = "Currently, use a local version of 2TAT."
+INFO_MESSAGE_SERVER = "Currently, use a demo version of 2TAT."
 
 @app.route('/')
 def index():
-    # replace mapping by sqlite search labels
+    #message_info = ""
+    if LOCAL:
+        message_info = INFO_MESSAGE_LOCAL
+    elif SERVER:
+        message_info = INFO_MESSAGE_SERVER
+    #Get text
+    text = Text.query.filter_by(id=1).first()
+    # Get mapping
+    mapping = Mapping._get_dict()
+
     stats_mentions_count = Annotation._get_mentions_count()
-    return render_template("annotator.html", text=text, mapping=mapping, stats_mention=stats_mentions_count)
+    return render_template("annotator.html", text=text.plain_text, mapping=mapping, stats_mention=stats_mentions_count, message_info=message_info)
 
 @app.route('/get_statitics', methods=['GET', 'POST'])
 def labels_count():
@@ -37,6 +52,9 @@ def labels_count():
 @app.route('/mapping', methods=["GET", "POST"])
 def get_mapping():
     if request.method == "GET":
+        #Get mapping
+        mapping = Mapping._get_dict()
+        print("ça passe ici")
         return jsonify(mapping)
     else:
         return jsonify(status='error')
@@ -142,3 +160,5 @@ def remove_all_annotations():
             db.session.commit()
 
     return jsonify(status=True)
+
+
