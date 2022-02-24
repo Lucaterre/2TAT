@@ -4,23 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Title</title>
+    <title>2TAT-Demo</title>
 
     <!-- bootstrap + JQUERY -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>-->
+
     <link rel="shortcut icon" href="#">
     <!-- recogito CSS -->
     <link href="{{ url_for('static', filename="css/recogito.min.css") }}" rel="stylesheet" type="text/css" />
 
+    <!-- others -->
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.13.0/css/all.css">
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-fork-ribbon-css/0.2.3/gh-fork-ribbon.min.css" />
 
 </head>
 
+<!-- add inline CSS HTML tags and pass all to external file -->
 <style>
+    @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500&display=swap');
 
     body{
         background-color: #eae6e6;
@@ -42,6 +45,8 @@
         color            : #202020;
     }
 
+    /* spaCy annotation style CSS */
+
     span{
         font-weight      : bold;
         line-height      : 1;
@@ -56,15 +61,6 @@
     .btn{
         margin: 2px 2px 12px 10px !important;
     }
-    /*
-        mark{
-            padding       : 0.20em 0.6em;
-            margin        : 0.15em;
-            line-height   : 0.73em;
-            border-radius : 0.35em;
-            color         : #f5f5f5;
-        }
-    */
 
     .colorselector-widget {
         padding:5px;
@@ -77,23 +73,6 @@
 
     .github-fork-ribbon:before { background-color: #333; }
 
-    /*
-    .colorselector-widget button {
-      outline:none;
-      border:none;
-      display:inline-block;
-      width:20px;
-      height:20px;
-      border-radius:50%;
-      cursor:pointer;
-      opacity:0.5;
-      margin:4px;
-    }
-    .colorselector-widget button.selected,
-    .colorselector-widget button:hover {
-      opacity:1;
-    }
-    */
     .r6o-annotation {
         border-color: transparent !important;
     }
@@ -105,9 +84,10 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col">
-            <h1>2TAT (<i>Tiny Text Annotator Template</i>)</h1>
+            <h1 style="font-family: 'Oswald', sans-serif;">2TAT - <i>Tiny Text Annotator Template</i> -</h1>
             <br>
-            <p>{{ message_info }}</p>
+            <div style="color:#e74c3c; text-align: justify; max-width: 450px;">{{ message_info }}</div>
+            <br>
             <button id="added-all-annotations" class="btn btn-info" style="height: 50px; width:215px;">Reset demo annotations</button>
             <button id="remove-all-annotations" class="btn btn-danger" style="height: 50px; width:215px;">Remove all annotations</button>
             <br>
@@ -126,15 +106,16 @@
     <div class="row">
         <div class="col-md-3 col-sm-3 col-sm-offset-1" style="position: relative !important;">
 
-            <h2><i class="fa fa-tag"></i> Annotations</h2>
+            <h2><i class="fa fa-tag"></i><span id="total-annotation" style="background-color: #eae6e6;">0</span> Annotations</h2>
             <hr>
             <div id="number-annotations">
                 <input type="text" id="myInput"  placeholder="Search for annotations..">
                 <input id="clear-input-text" type="submit" value="clear">
+                <i class="fa fa-question" title="Query mention in all annotations. To restore list, click on clear or annotate the text."></i>
                 <br>
                 <br>
                 {% for label, color in mapping.items() %}
-                    <span id="entityLabel" class="{{ label }}">{{label}}<!-- <i class="fa fa-angle-down" style="font-size: 13px"></i>--></span>
+                    <span id="entityLabel" class="{{ label }}">{{label}} <i class="fa fa-angle-down" style="font-size: 13px"></i></span>
                     <span id="entityLabelCount-{{ label }}">0</span>
                     <ul id="list-{{ label }}" class="list-group" style="display: none">
                         {% for mention, count in stats_mention[label] %}
@@ -156,14 +137,16 @@
             <pre class="selection"  id="text" style="font-size:15px; text-align: justify; padding:1em 0.5em;line-height: 2em;  margin: 0; height: 50em; overflow-y:auto; white-space: pre-wrap; font-family: monospace">{{ text }}</pre>
         </div>
         <!-- <div id="entity_type"></div> -->
-        <div class="col">
+        <div class="col-md col-sm col-sm-offset">
             <div style="position: fixed">
                 <br>
                 <br>
-                <button class="btn btn-dark" id="zoomIn"><i class="fa fa-search-plus"></i></button>
+                <button class="btn btn-dark" id="zoomIn" title="zoom in"><i title="zoom in" class="fa fa-search-plus"></i></button>
                 <br>
-                <button class="btn btn-dark" id="zoomOut"><i class="fa fa-search-minus"></i></button>
-                </div>
+                <button class="btn btn-dark" id="zoomOut" title="zoom out"><i title="zoom out" class="fa fa-search-minus"></i></button>
+                <br>
+                <a class="btn btn-dark" id="export" title="export annotations in JSON (W3C annotation data format)" href="{{ url_for('export_annotations')}}"><i title="export W3C annotations format" class="fa fa-file-export"></i></a>
+            </div>
         </div>
     </div>
 </div>
@@ -171,5 +154,6 @@
 <script type="text/javascript" src="{{ url_for('static', filename="js/recogito.min.js") }}"></script>
 <!-- recogito custom JS -->
 <script type="text/javascript" src="{{ url_for('static', filename="js/recogito.custom.js") }}"></script>
+
 </body>
 </html>

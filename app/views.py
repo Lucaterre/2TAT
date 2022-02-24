@@ -1,53 +1,38 @@
 import json
 
-from flask import render_template, request, jsonify
+from flask import render_template, request, jsonify, Response
 from app.models.schema import Annotation, Text, Mapping, populate_database
 
 from app.app import (
     app, db
 )
 
-from run import LOCAL, SERVER
+INFO_MESSAGE = "Currently, using a 2TAT demo version, if you are having " \
+               "troubles click on 'remove all annotations' or click on " \
+               "'Reset demo annotations'. Otherwise, clone the git " \
+               "repository and run locally."
 
-
-
-#text = """
-#Victor-Marie Hugo est le fils du général d'Empire Joseph Léopold Sigisbert Hugo (1773-1828), créé comte, selon la tradition familiale, par Joseph Bonaparte, roi d'Espagne, capitaine en garnison dans le Doubs au moment de la naissance de son fils, et de Sophie Trébuchet (1772-1821), issue de la bourgeoisie nantaise.
-#En 1817, Victor Hugo a quinze ans lorsqu'il participe à un concours de poésie organisé par l'Académie française sur le thème Bonheur que procure l’étude dans toutes les situations de la vie.
-#De 1830 à 1843, Victor Hugo se consacre presque exclusivement au théâtre. Il continue cependant d'écrire des poèmes pendant cette période et en publie plusieurs recueils : Les Feuilles d'automne (1831), Les Chants du crépuscule (1835), Les Voix intérieures (1837), Les Rayons et les Ombres (1840).
-#"""
-
-#mapping = {
-#        "PERSON" : "#ef6d62",
-#        "LOCATION" : "#4d8fbb",
-#        "TITLE" : "#45b39d",
-#        "ORGANISATION" : "#9b59b6",
-#        "WORK" : " #f4d03f"
-#    }
-
-
-INFO_MESSAGE_LOCAL = "Currently, use a local version of 2TAT."
-INFO_MESSAGE_SERVER = "Currently, use a demo version of 2TAT."
 
 @app.route('/')
 def index():
-    #message_info = ""
-    if LOCAL:
-        message_info = INFO_MESSAGE_LOCAL
-    elif SERVER:
-        message_info = INFO_MESSAGE_SERVER
     #Get text
     text = Text.query.filter_by(id=1).first()
     # Get mapping
     mapping = Mapping._get_dict()
 
     stats_mentions_count = Annotation._get_mentions_count()
-    return render_template("annotator.html", text=text.plain_text, mapping=mapping, stats_mention=stats_mentions_count, message_info=message_info)
+    return render_template("annotator.html",
+                           text=text.plain_text,
+                           mapping=mapping,
+                           stats_mention=stats_mentions_count,
+                           message_info=INFO_MESSAGE)
+
 
 @app.route('/get_statitics', methods=['GET', 'POST'])
 def labels_count():
     if request.method == "GET":
         return Annotation._get_simple_statistics()
+
 
 @app.route('/mapping', methods=["GET", "POST"])
 def get_mapping():
@@ -59,6 +44,7 @@ def get_mapping():
     else:
         return jsonify(status='error')
 
+
 @app.route('/annotations', methods=['GET', 'POST'])
 def get_annotations():
     annotations = Annotation._get_annotations()
@@ -66,6 +52,7 @@ def get_annotations():
         return jsonify(annotations)
     else:
         return jsonify(status=False)
+
 
 @app.route('/reload_demo_annotations', methods=['GET', 'POST'])
 def reload_demo():
@@ -75,6 +62,7 @@ def reload_demo():
         return jsonify(annotations)
     else:
         return jsonify(status=False)
+
 
 @app.route('/delete_annotation', methods=['GET','POST'])
 def remove_annotations():
@@ -96,6 +84,7 @@ def remove_annotations():
 
     return jsonify(status=True)
 
+
 @app.route('/new_annotation', methods=['GET','POST'])
 def add_annotations():
     if request.method == "POST":
@@ -109,12 +98,14 @@ def add_annotations():
 
     return jsonify(status=True)
 
+
 @app.route('/update_annotation', methods=['GET', 'POST'])
 def modify_annotation():
     if request.method == "POST":
         data = json.loads(request.data)
         token_id = data['id']
         if str(token_id).startswith("#"):
+            # TODO : redundant process here
             # New annotation provides from Recogito with UUID
             token = Annotation.query.filter_by(mention=data['mention'],
                                                label=data['label'],
@@ -130,6 +121,7 @@ def modify_annotation():
 
         db.session.commit()
     return jsonify(status=True)
+
 
 @app.route('/destroy_annotations', methods=['GET', 'POST'])
 def remove_all_annotations():
@@ -162,3 +154,9 @@ def remove_all_annotations():
     return jsonify(status=True)
 
 
+@app.route('/export')
+def export_annotations():
+    annotations = Annotation._get_annotations()
+    return Response(json.dumps(annotations, ensure_ascii=False), mimetype="application/json", headers={
+        "Content-Disposition": f"attachment; filename=annotations.json"
+    })

@@ -1,20 +1,37 @@
 /**
- * Annotation view and event/requests handlers using custom RecogitoJS (https://github.com/recogito/recogito-js)*
+ * Custom annotation view using RecogitoJS (https://github.com/recogito/recogito-js)
+ *
+ * Date : 24/02/2021
  **/
 
 (function() {
+    // Init annotation DOM container
+    const textContent = document.getElementById('text');
+    const totalAnnotationsSpan = document.querySelector('#total-annotation')
+    const mentionCountBadges = document.querySelectorAll('.badge')
+
+    const sumAnnots = (totalAnnotationsCounter) => {
+        var count = 0;
+        mentionCountBadges.forEach(function (badge){
+            count += parseInt(badge.innerHTML)
+
+        });
+        totalAnnotationsCounter.textContent = count
+    }
+    sumAnnots(totalAnnotationsSpan);
+
     // Get user mapping (label/color) from user config (db)
     const fetchMapping = fetch("/mapping")
         .then((response) => response.json())
-        .then((user) => {
-            return user;
+        .then((res) => {
+            return res;
         });
 
     // Get labels statitics (db)
     const fetchStatsLabel = fetch("/get_statitics")
         .then((response) => response.json())
-        .then((user) => {
-            return user;
+        .then((res) => {
+            return res;
         });
 
     const addLabelsStatsInfo = async () => {
@@ -87,6 +104,7 @@
                 });
             }
         }
+
         // This part renders the UI elements
         const createButton = function (value) {
             let button = document.createElement('button');
@@ -145,17 +163,12 @@
         var labelLabelInput = document.createElement('label')
         var inputLabel = document.createElement('input');
 
-
         title.textContent = "Description"
-
-
 
         labelMentionInput.setAttribute("for", "mention")
         labelMentionInput.textContent = "Mention"
 
-
         form.className = "form-group"
-
 
         inputMention.setAttribute('disabled', true)
         inputMention.setAttribute('size', 30)
@@ -181,9 +194,6 @@
             inputLabel.value = ""
         }
 
-
-
-
         form.appendChild(labelMentionInput)
         form.appendChild(inputMention)
         form.appendChild(labelLabelInput)
@@ -194,12 +204,6 @@
         container.appendChild(form)
         return container
     };
-
-
-
-
-    // Init annotation DOM container
-    const textContent = document.getElementById('text');
 
     // Init Recogito JS annotation object
     let r = Recogito.init({
@@ -264,7 +268,6 @@
             }
         }
     }
-
 
 
     /*
@@ -356,6 +359,7 @@
             }
 
             document.getElementById("entityLabelCount-"+label).textContent = actualCount+1
+            totalAnnotationsSpan.textContent = parseInt(totalAnnotationsSpan.textContent) + 1
         }
         if (type === "less"){
             let mentionList = document.getElementById("list-"+label+"-"+mention)
@@ -366,6 +370,7 @@
             }
             var newActualBadgeCount = parseInt(itemListBadge.textContent);
             document.getElementById("entityLabelCount-"+label).textContent = actualCount-1
+            totalAnnotationsSpan.textContent = parseInt(totalAnnotationsSpan.textContent) - 1
             if (newActualBadgeCount === 0){
                 mentionList.remove();
             }
@@ -374,13 +379,10 @@
         }
     }
 
-
-
     r.on('createAnnotation', function (annotation) {
         let data = prepareData(annotation);
         sendData(data, "/new_annotation");
         updateListControl(annotation, "more");
-
     });
 
 
@@ -407,25 +409,14 @@
         updateListControl(annotation, "more");
     });
 
-
     function resetListsMentions(){
         const allListsMentions = document.querySelectorAll(".list-group");
+        totalAnnotationsSpan.textContent = 0;
         allListsMentions.forEach(function (ele) {
             var label = ele.id.split('-')[1];
             document.getElementById("entityLabelCount-" + label).innerText = "0";
             ele.innerHTML = "";
         })
-
-
-        /*
-            for (var ele in allListsMentions) {
-                console.log(allListsMentions[ele])
-                var label = allListsMentions[ele].id.split('-')[1]
-                // get counter element
-                document.getElementById("entityLabelCount-" + label).innerText = "0";
-                allListsMentions[ele].innerHTML = "";
-            }*/
-
     }
 
     // listener to destroy all annotations
@@ -437,10 +428,6 @@
             resetListsMentions();
         }
     });
-
-
-
-
 
     function destroyAllHandler(){
 
@@ -468,16 +455,18 @@
         }
     }
 
-
-
     const annotationsArea = document.getElementById("number-annotations")
     annotationsArea.onclick  = listHandler;
 
     function listHandler(event) {
         let span
         let target = event.target;
-        if (target.localName === "span"){
-            span = target
+        if (target.localName === "span" || target.localName === "i"){
+            if(target.localName === "i"){
+                span = target.parentNode
+            }else{
+             span = target;
+            }
             var label = span.className;
             var btnlist = document.getElementById("list-"+label);
             if (btnlist.style.display === "none"){
@@ -487,9 +476,6 @@
             }
         }
     }
-
-
-
 
     // mouve on utils files functions
     const btnZoomIn = document.getElementById("zoomIn");
@@ -519,18 +505,11 @@
         }
     });
 
-
-
     // Search function
      // event listner to search mentions
-
-
     const searchInput = document.getElementById("myInput");
     const clearInput  = document.getElementById("clear-input-text")
     searchInput.onkeyup = searchInput.onfocus = searchInput.onblur =  clearInput.onclick = textContent.onclick =  myFunction;
-
-
-
 
     document.getElementById('myInput').value = "";
 
@@ -547,7 +526,6 @@
         if (event.type === "focus"){
             displayUl('');
         }
-        // search
         else if (event.type === "keyup"){
             for (var i = 0; i < elements.length; i ++) {
                 var el = elements[i];
@@ -559,8 +537,6 @@
                 }
             }
         }
-
-
 
         else if (event.type === "blur" && query.length === 0){
             displayUl('none');
@@ -574,74 +550,5 @@
             displayUl('none')
             document.getElementById('myInput').value = "";
         }
-
-        /*
-        if (event.type === "keyup"){
-            document.querySelectorAll('ul').forEach(function(ul, index){
-            ul.style.display = "block"
-        });
-            for (var i = 0; i < elements.length; i ++) {
-                var el = elements[i];
-                if (el.innerText.indexOf(query) > -1){
-                    el.setAttribute('style', 'display: ""');
-                }
-                else{
-                    el.setAttribute('style', 'display: none !important');
-                }
-            }
-        }*/
-        //else{
-
-        //    for (var i = 0; i < elements.length; i ++) {
-        //        var el = elements[i];
-        //        el.setAttribute('style', 'display: ""');
-        //    }
-            //document.querySelectorAll('ul').forEach(function(ul, index){
-            //ul.style.display = "none"
-        //})
-        // }
-            /*
-        else if (event.type === "blur" && query.length === 0 ){
-            console.log(query.length)
-            document.querySelectorAll('ul').forEach(function(ul, index){
-            ul.style.display = "none";
-        })
-            for (var i = 0; i < elements.length; i ++) {
-                var el = elements[i];
-                el.setAttribute('style', 'display: ""');
-            }
-            document.querySelectorAll('ul').forEach(function (ul, index) {
-                ul.style.display = "block"
-            })
-            document.getElementById('myInput').value = "";
-        }else{
-             document.getElementById('myInput').value = "";
-        }
-        // this wil grab all <li> elements from all <ul> elements on the page
-        // however, you will want to specify a unique attribute for only the elements you wish to include
-        */
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 })();

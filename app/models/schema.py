@@ -4,7 +4,6 @@ import json
 from ..app import db
 from sqlalchemy import func
 
-
 class Text(db.Model):
     __tablename__ = "text"
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -32,6 +31,7 @@ class Annotation(db.Model):
 
     @staticmethod
     def _get_annotations():
+        # use https://www.w3.org/TR/annotation-model/
         return [{
             "@context": "http://www.w3.org/ns/anno.jsonld",
             "id": annotation.id,
@@ -67,14 +67,14 @@ class Annotation(db.Model):
             Annotation.mention,
             func.count(Annotation.mention)
         ).group_by(Annotation.mention).all()
-        Dict = dict()
 
         def convert(list_tup):
+            # TODO : simplify and re-factorize
+            Dict = dict()
             for a, b, c in list_tup:
-                letters = b, c
-                number = a
-                Dict.setdefault(number, []).append(letters)
-                # I only want a multiple tuple values not list of tuple
+                group = b, c
+                index = a
+                Dict.setdefault(index, []).append(group)
             return Dict
 
         return convert(mentions_counter)
@@ -94,12 +94,12 @@ def open_json(filename):
     return data
 
 
-"""
 def populate_database():
     text_path = "./app/data_demo/hugo_bio.txt"
+    #text_path = "./app/data_demo/long_text.txt"
     mapping_path = "./app/data_demo/mapping_demo.json"
-    demo_annotations_path = "./app/data_demo/demo_annotations_hugo_bio.csv" # else set None
-
+    demo_annotations_path = "./app/data_demo/demo_annotations_hugo_bio.csv"  # else set None
+    #demo_annotations_path = None
     db.drop_all()
     db.create_all()
 
@@ -116,8 +116,9 @@ def populate_database():
         db.session.add(new_map)
     db.session.commit()
 
-    # Populate database with annotations examples (you can override
-    # this sequence with you use your own text and/or mapping)
+
+    # Populate database with annotations examples (override
+    # this sequence with other text and/or mapping)
     if demo_annotations_path is not None:
         with open(demo_annotations_path) as csv_file:
             csv_annotations = csv.reader(csv_file, delimiter=",")
@@ -127,63 +128,4 @@ def populate_database():
             db.session.add(annotation)
 
         db.session.commit()
-
-"""
-
-def populate_database():
-    #text_path = "./app/data_demo/hugo_bio.txt"
-    text_path = "./app/data_demo/long_text.txt"
-    mapping_path = "./app/data_demo/mapping_demo.json"
-    #demo_annotations_path = "./app/data_demo/demo_annotations_hugo_bio.csv"  # else set None
-    demo_annotations_path = None
-    db.drop_all()
-    db.create_all()
-
-    # Populate database with a text
-    text = open_text(text_path)
-    new_text = Text(plain_text=text)
-    db.session.add(new_text)
-    db.session.commit()
-
-    # Populate database with a mapping
-    mapping = open_json(mapping_path)
-    for label, color in mapping.items():
-        new_map = Mapping(label=label, color=color)
-        db.session.add(new_map)
-    db.session.commit()
-
-    # Populate database with annotations examples
-    '''
-    annotations = [("Victor-Marie Hugo", "PERSON", 0, 17),
-               ("Joseph Léopold Sigisbert Hugo", "PERSON", 50, 79),
-               ("Doubs", "LOCATION", 202, 207),
-               ("Académie française", "ORGANISATION", 411, 429),
-               ("Les Feuilles d'automne", "WORK", 681, 703)]
-    '''
-    """
-    annotations = [("Victor-Marie Hugo", "PERSON", 0, 17),
-                   ("Joseph Léopold Sigisbert Hugo", "PERSON", 50, 79),
-                   ("Doubs", "LOCATION", 202, 207),
-                   ("Académie française", "ORGANISATION", 410, 428),
-                   ("Les Feuilles d'automne", "WORK", 680, 702)]
-    """
-    # Populate database with annotations examples (you can override
-    # this sequence with you use your own text and/or mapping)
-
-    if demo_annotations_path is not None:
-        with open(demo_annotations_path) as csv_file:
-            csv_annotations = csv.reader(csv_file, delimiter=",")
-            annotations = [(row[0], row[1], row[2], row[3]) for row in csv_annotations]
-        for entity in annotations:
-            annotation = Annotation(mention=entity[0], label=entity[1], offset_start=entity[2], offset_end=entity[3])
-            db.session.add(annotation)
-
-        db.session.commit()
-    """
-    for entity in annotations:
-        annotation = Annotation(mention=entity[0], label=entity[1], offset_start=entity[2], offset_end=entity[3])
-        db.session.add(annotation)
-
-    db.session.commit()
-    """
 
