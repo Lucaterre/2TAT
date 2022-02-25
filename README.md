@@ -2,8 +2,8 @@
 ![Python Version](https://img.shields.io/badge/python-3.7%20%7C%203.8-blue)
 
 # 2TAT (*Tiny Text Annotator Template*)
-
-![]("./ressources/demo.gif")
+ 
+![demo](ressources/demo.gif)
 
 ### Description
 
