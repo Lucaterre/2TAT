@@ -3,13 +3,11 @@
 
 # 2TAT (*Tiny Text Annotator Template*)
  
+ 2TAT (Tiny Text Annotator Template) :  a customized text annotator experimentation (here for a named entity annotation task) canvas using Flask-[RecogitoJS](https://github.com/recogito/recogito-js)
+
+:fast_forward: Demo on Heroku :  [here](https://ttat-demo-app.herokuapp.com/)
+ 
 ![demo](ressources/demo.gif)
-
-### Description
-
-2TAT (Tiny Text Annotator Template) :  a customized text annotator experimentation (here for a named entity annotation task) canvas using Flask-[RecogitoJS](https://github.com/recogito/recogito-js)
-
-* Demo on Heroku :  [here](https://ttat-demo-app.herokuapp.com/)
 
 ### What main features ?
 
