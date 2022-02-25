@@ -53,7 +53,7 @@ This is a reusable template that is not intended to be a persistent annotation p
 1. Export your annotations in W3C data models format accessible in the annotation window next to the zoom;
 2. convert this format in csv (exemple in `data_demo` folder with `demo_annotations_hugo_bio.csv`) with a script;
 3. put its csv in the `data_demo` folder;
-4. Comment or uncomment last lines of populate_database (see above);
+4. Comment or uncomment last lines of `populate_database()` function (see above);
 5. restart `run.py`
 
 ...Its good
