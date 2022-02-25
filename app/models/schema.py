@@ -1,8 +1,11 @@
+# -*- coding:utf-8 -*-
+
 import csv
-import json
 
 from ..app import db
 from sqlalchemy import func
+from ..utils import (open_text, open_json)
+
 
 class Text(db.Model):
     __tablename__ = "text"
@@ -17,7 +20,7 @@ class Mapping(db.Model):
     color = db.Column(db.Text)
 
     @staticmethod
-    def _get_dict():
+    def get_dict():
         return {ma.label: ma.color for ma in Mapping.query.all()}
 
 
@@ -30,8 +33,8 @@ class Annotation(db.Model):
     offset_end = db.Column(db.Integer)
 
     @staticmethod
-    def _get_annotations():
-        # use https://www.w3.org/TR/annotation-model/
+    def get_annotations():
+        # use data model : https://www.w3.org/TR/annotation-model/
         return [{
             "@context": "http://www.w3.org/ns/anno.jsonld",
             "id": annotation.id,
@@ -54,14 +57,14 @@ class Annotation(db.Model):
         } for annotation in Annotation.query.order_by(Annotation.offset_start).all()]
 
     @staticmethod
-    def _get_simple_statistics():
+    def get_simple_statistics():
         return {label: count for label, count in db.session.query(
             Annotation.label,
             func.count(Annotation.label)
         ).group_by(Annotation.label).all()}
 
     @staticmethod
-    def _get_mentions_count():
+    def get_mentions_count():
         mentions_counter = db.session.query(
             Annotation.label,
             Annotation.mention,
@@ -78,20 +81,6 @@ class Annotation(db.Model):
             return Dict
 
         return convert(mentions_counter)
-
-
-# parser utils functions
-
-def open_text(filename):
-    with open(filename, mode='r', encoding="utf-8") as f:
-        file = f.read()
-    return file
-
-
-def open_json(filename):
-    with open(filename) as json_file:
-        data = json.load(json_file)
-    return data
 
 
 def populate_database():
@@ -115,7 +104,6 @@ def populate_database():
         new_map = Mapping(label=label, color=color)
         db.session.add(new_map)
     db.session.commit()
-
 
     # Populate database with annotations examples (override
     # this sequence with other text and/or mapping)

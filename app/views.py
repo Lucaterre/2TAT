@@ -1,7 +1,15 @@
+# -*- coding:utf-8 -*-
+
 import json
 
-from flask import render_template, request, jsonify, Response
-from app.models.schema import Annotation, Text, Mapping, populate_database
+from flask import (render_template,
+                   request,
+                   jsonify,
+                   Response)
+from app.models.schema import (Annotation,
+                               Text,
+                               Mapping,
+                               populate_database)
 
 from app.app import (
     app, db
@@ -12,15 +20,42 @@ INFO_MESSAGE = "Currently, using a 2TAT demo version, if you are having " \
                "'Reset demo annotations'. Otherwise, clone the git " \
                "repository and run locally."
 
+def get_correct_data(data, from_w3c):
+    if from_w3c:
+        mention = data['destroyOne']['target']['selector'][0]['exact']
+        label = data['destroyOne']['body'][0]['value']
+        start = data['destroyOne']['target']['selector'][1]['start']
+        end = data['destroyOne']['target']['selector'][1]['end']
+    else:
+        mention = data['mention']
+        label = data['label']
+        start = data['start']
+        end = data['end']
+    return mention, label, start, end
+
+
+def get_correct_token(data, token_id, w3c_format):
+    mention, label, start, end = get_correct_data(data, from_w3c=w3c_format)
+    if str(token_id).startswith("#"):
+        # New annotation provides from Recogito with UUID
+        token = Annotation.query.filter_by(mention=mention,
+                                           label=label,
+                                           offset_start=start,
+                                           offset_end=end).first()
+    else:
+        # Old annotation comes with autoincrement primary key ID
+        token = Annotation.query.filter_by(id=int(token_id)).first()
+    return token
+
 
 @app.route('/')
 def index():
-    #Get text
+    # Get text
     text = Text.query.filter_by(id=1).first()
     # Get mapping
-    mapping = Mapping._get_dict()
-
-    stats_mentions_count = Annotation._get_mentions_count()
+    mapping = Mapping.get_dict()
+    # Get stats on number of annotations by mentions
+    stats_mentions_count = Annotation.get_mentions_count()
     return render_template("annotator.html",
                            text=text.plain_text,
                            mapping=mapping,
@@ -31,15 +66,13 @@ def index():
 @app.route('/get_statitics', methods=['GET', 'POST'])
 def labels_count():
     if request.method == "GET":
-        return Annotation._get_simple_statistics()
+        return Annotation.get_simple_statistics()
 
 
 @app.route('/mapping', methods=["GET", "POST"])
 def get_mapping():
     if request.method == "GET":
-        #Get mapping
-        mapping = Mapping._get_dict()
-        print("ça passe ici")
+        mapping = Mapping.get_dict()
         return jsonify(mapping)
     else:
         return jsonify(status='error')
@@ -47,7 +80,7 @@ def get_mapping():
 
 @app.route('/annotations', methods=['GET', 'POST'])
 def get_annotations():
-    annotations = Annotation._get_annotations()
+    annotations = Annotation.get_annotations()
     if request.method == "GET":
         return jsonify(annotations)
     else:
@@ -57,7 +90,7 @@ def get_annotations():
 @app.route('/reload_demo_annotations', methods=['GET', 'POST'])
 def reload_demo():
     populate_database()
-    annotations = Annotation._get_annotations()
+    annotations = Annotation.get_annotations()
     if request.method == "GET":
         return jsonify(annotations)
     else:
@@ -69,16 +102,7 @@ def remove_annotations():
     if request.method == "POST":
         data = json.loads(request.data)
         token_id = data['id']
-        if str(token_id).startswith("#"):
-            # New annotation provides from Recogito with UUID
-            token = Annotation.query.filter_by(mention=data['mention'],
-                                               label=data['label'],
-                                               offset_start=data['start'],
-                                               offset_end=data['end']).first()
-        else:
-            # Old annotation comes with autoincrement primary key ID
-            token = Annotation.query.filter_by(id=int(token_id)).first()
-
+        token = get_correct_token(data, token_id, w3c_format=False)
         db.session.delete(token)
         db.session.commit()
 
@@ -104,21 +128,8 @@ def modify_annotation():
     if request.method == "POST":
         data = json.loads(request.data)
         token_id = data['id']
-        if str(token_id).startswith("#"):
-            # TODO : redundant process here
-            # New annotation provides from Recogito with UUID
-            token = Annotation.query.filter_by(mention=data['mention'],
-                                               label=data['label'],
-                                               offset_start=data['start'],
-                                               offset_end=data['end']).first()
-            # Then update label here ...
-            token.label = data['updatedLabel']
-
-        else:
-            # Old annotation comes with autoincrement primary key ID
-            token = Annotation.query.filter_by(id=int(token_id)).first()
-            token.label = data['updatedLabel']
-
+        token = get_correct_token(data, token_id, w3c_format=False)
+        token.label = data['updatedLabel']
         db.session.commit()
     return jsonify(status=True)
 
@@ -134,21 +145,9 @@ def remove_all_annotations():
             except:
                 db.session.rollback()
         elif data['destroyOne']:
-            entity_id = str(data['destroyOne']['id'])
-            if str(entity_id).startswith('#'):
-                #print(data['destroyOne'])
-                mention = data['destroyOne']['target']['selector'][0]['exact']
-                label = data['destroyOne']['body'][0]['value']
-                start = data['destroyOne']['target']['selector'][1]['start']
-                end = data['destroyOne']['target']['selector'][1]['end']
-                entity = Annotation.query.filter_by(mention=mention,
-                                                   label=label,
-                                                   offset_start=int(start),
-                                                   offset_end=int(end)).first()
-            else:
-                entity = db.session.query(Annotation).filter_by(id=entity_id).first()
-
-            db.session.delete(entity)
+            token_id = str(data['destroyOne']['id'])
+            token = get_correct_token(data, token_id, w3c_format=True)
+            db.session.delete(token)
             db.session.commit()
 
     return jsonify(status=True)
@@ -156,7 +155,7 @@ def remove_all_annotations():
 
 @app.route('/export')
 def export_annotations():
-    annotations = Annotation._get_annotations()
+    annotations = Annotation.get_annotations()
     return Response(json.dumps(annotations, ensure_ascii=False), mimetype="application/json", headers={
         "Content-Disposition": f"attachment; filename=annotations.json"
     })

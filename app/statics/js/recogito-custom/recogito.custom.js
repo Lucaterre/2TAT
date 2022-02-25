@@ -8,7 +8,7 @@
     // Init annotation DOM container
     const textContent            = document.querySelector('#text');
     // sometimes we can't access directly to the stylesheet
-    const textPre                = window.getComputedStyle(document.getElementById('text'), null)
+    const textPre                = window.getComputedStyle(document.getElementById('text'), null);
     // Init constants
     const totalAnnotationsSpan   = document.querySelector('#total-annotation');
     const mentionCountBadges     = document.querySelectorAll('.badge');
@@ -24,7 +24,7 @@
     // Attach listeners functions to elements
     searchInput.onkeyup = searchInput.onfocus = searchInput.onblur = clearInput.onclick = textContent.onclick = queryMentions;
     btnZoomIn.onclick = btnZoomOut.onclick  = zoomText;
-    annotationsArea.onclick = listHandler;
+    annotationsArea.onclick = annotationsArea.onbind = listHandler;
     textContent.onmouseover = textContent.onmouseout = spanHandler;
     RemoveAllAnnotsBtn.onclick = RemoveAllAnnotations;
     ResetAllDemoAnnotsBtn.onclick = reloadDemoAnnotations;
@@ -79,12 +79,12 @@
     };
     // Add a specific colors mapping for labels
     const stylizeMapping = async () => {
-        let style       = document.createElement('style')
-        style.type      = 'text/css';
-        style.innerHTML = ""
+        let style       = document.createElement('style');
+        style.setAttribute('type', 'text/css');
+        style.innerHTML = "";
         await fetchMapping.then((mapping) =>{
             for (const [label, color] of Object.entries(mapping)) {
-                style.innerHTML += "."+label+"{background-color:"+color+";}"
+                style.innerHTML += "."+label+"{background-color:"+color+";}";
             }
             document.querySelectorAll('head')[0].appendChild(style);
         });
@@ -105,7 +105,7 @@
         // Keep the value in a variable
         let currentColorValue = currentColorBody ? currentColorBody.value : null;
         // Triggers callbacks on user action (here combined highlight & tagging actions)
-        let addTag = function (evt) {
+        const addTag = function (evt) {
             if (currentColorBody) {
                 args.onUpdateBody(currentColorBody, {
                     type: 'TextualBody',
@@ -121,7 +121,7 @@
                 });
             }
         }
-        let addLabel = function (evt) {
+        const addLabel = function (evt) {
             if (currentColorBody) {
                 args.onUpdateBody(currentColorBody, {
                     type: 'TextualBody',
@@ -140,8 +140,9 @@
         // This part renders the UI elements
         const createButton = function (value) {
             let button = document.createElement('button');
-            if (value === currentColorValue)
+            if (value === currentColorValue){
                 button.className = 'selected';
+            }
             button.className             = value;
             button.textContent           = value;
             button.dataset.tag           = value;
@@ -163,8 +164,8 @@
         // This part render label button with specified mapping
         const stylizeBox = async () => {
             const mapping = await fetchMapping;
-            for (var key in mapping){
-                var button = createButton(key);
+            for (let key in mapping){
+                let button = createButton(key);
                 container.appendChild(button);
             }
         };
@@ -191,43 +192,44 @@
         let inputMention      = document.createElement('input');
         let labelLabelInput   = document.createElement('label')
         let inputLabel        = document.createElement('input');
-        title.textContent = "Description"
-        labelMentionInput.setAttribute("for", "mention")
-        labelMentionInput.textContent = "Mention"
-        form.className = "form-group"
-        inputMention.setAttribute('disabled', true)
-        inputMention.setAttribute('size', 30)
-        inputMention.id = "mention"
-        inputMention.name = "mention"
-        inputMention.value = actualMention
-        inputMention.className = "form-control"
-        labelLabelInput.setAttribute("for", "label")
-        labelLabelInput.textContent = "Label"
-        inputLabel.setAttribute('disabled', true)
-        inputLabel.setAttribute('size', 15)
-        inputLabel.id = "label"
-        inputLabel.name = "label"
-        inputLabel.className = "form-control"
+        title.textContent = "Description";
+        labelMentionInput.setAttribute("for", "mention");
+        labelMentionInput.textContent = "Mention";
+        form.className = "form-group";
+        inputMention.setAttribute('disabled', 'true');
+        inputMention.setAttribute('size', '30');
+        inputMention.id = "mention";
+        inputMention.name = "mention";
+        inputMention.value = actualMention;
+        inputMention.className = "form-control";
+        labelLabelInput.setAttribute("for", "label");
+        labelLabelInput.textContent = "Label";
+        inputLabel.setAttribute('disabled', 'true');
+        inputLabel.setAttribute('size', '15');
+        inputLabel.id = "label";
+        inputLabel.name = "label";
+        inputLabel.className = "form-control";
         try{
-            inputLabel.value = args.annotation.underlying.body[0].value
+            inputLabel.value = args.annotation.underlying.body[0].value;
         }catch{
-            inputLabel.value = ""
+            inputLabel.value = "";
         }
-        form.appendChild(labelMentionInput)
-        form.appendChild(inputMention)
-        form.appendChild(labelLabelInput)
-        form.appendChild(inputLabel)
-        container.appendChild(title)
-        container.appendChild(line)
-        container.appendChild(form)
-        return container
+        form.appendChild(labelMentionInput);
+        form.appendChild(inputMention);
+        form.appendChild(labelLabelInput);
+        form.appendChild(inputLabel);
+        container.appendChild(title);
+        container.appendChild(line);
+        container.appendChild(form);
+        return container;
     };
 
     /*
     *    BASE
     */
     // Init Recogito JS annotation object
-    let r = Recogito.init({
+    const Recogito = window.Recogito;
+    const r = Recogito.init({
         content: textContent,
         widgets: [
             MentionLabelWidget, colorLabelSelectorWidget
@@ -264,7 +266,7 @@
         // get previous annotation informations here
         let data = prepareData(previous);
         // get new label to update annotation
-        var newLabel = {updatedLabel : annotation.body[0].value};
+        let newLabel = {updatedLabel : annotation.body[0].value};
         // concatenate previous and new data dict
         sendData(Object.assign({}, data, newLabel), "/update_annotation");
 
@@ -281,9 +283,9 @@
     const sumAnnots = (totalAnnotationsCounter) => {
         let count = 0;
         mentionCountBadges.forEach(function (badge){
-            count += parseInt(badge.innerHTML)
+            count += parseInt(badge.innerHTML);
         });
-        totalAnnotationsCounter.textContent = count
+        totalAnnotationsCounter.textContent = count;
     }
 
     //Remove all annotations
@@ -302,8 +304,8 @@
         r.clearAnnotations();
         resetListsMentions();
         r.loadAnnotations("/reload_demo_annotations").then(function () {
-            var allAnnotations = r.getAnnotations();
-            for (var annotation in allAnnotations){
+            let allAnnotations = r.getAnnotations();
+            for (let annotation in allAnnotations){
                 updateListControl(allAnnotations[annotation], 'more');
             }
         })
@@ -328,19 +330,19 @@
     function updateListControl(annotation, type){
         let mention = annotation.target.selector[0].exact;
         let label   = annotation.body[0].value;
-        var actualCount = parseInt(document.getElementById("entityLabelCount-"+label).textContent);
+        let actualCount = parseInt(document.getElementById("entityLabelCount-"+label).textContent);
         if(type === "more"){
             let labelList = document.getElementById("list-"+label)
             try{
                 let itemListBadge   = document.getElementById("list-badge-"+label+"-"+mention);
-                var actualBadgeCount = parseInt(itemListBadge.textContent);
+                let actualBadgeCount = parseInt(itemListBadge.textContent);
                 itemListBadge.textContent = actualBadgeCount + 1;
             }catch {
                 // add new list item
-                var newListItemMention = document.createElement("li");
-                var newListBadge = document.createElement("span");
-                var newRemoveBtn = document.createElement("button");
-                var timesIcon   = document.createElement('i');
+                let newListItemMention = document.createElement("li");
+                let newListBadge = document.createElement("span");
+                let newRemoveBtn = document.createElement("button");
+                let timesIcon   = document.createElement('i');
 
 
                 newListItemMention.classList.add("list-group-item", "d-flex", "justify-content-between", "align-items-center")
@@ -355,9 +357,9 @@
 
                 newRemoveBtn.addEventListener("click", RemoveAllItems)
 
-                var textMention = document.createTextNode(mention);
+                let textMention = document.createTextNode(mention);
                 //newListItemMention.textContent = mention;
-                newListBadge.textContent = 1;
+                newListBadge.textContent = "1";
 
                 newRemoveBtn.appendChild(timesIcon);
                 newListItemMention.appendChild(newRemoveBtn);
@@ -367,19 +369,19 @@
                 labelList.appendChild(newListItemMention);
             }
 
-            document.getElementById("entityLabelCount-"+label).textContent = actualCount+1
-            totalAnnotationsSpan.textContent = parseInt(totalAnnotationsSpan.textContent) + 1
+            document.getElementById("entityLabelCount-"+label).textContent = actualCount+1;
+            totalAnnotationsSpan.textContent = parseInt(totalAnnotationsSpan.textContent) + 1;
         }
         if (type === "less"){
-            let mentionList = document.getElementById("list-"+label+"-"+mention)
+            let mentionList = document.getElementById("list-"+label+"-"+mention);
             let itemListBadge   = document.getElementById("list-badge-"+label+"-"+mention);
-            var actualBadgeCount = parseInt(itemListBadge.textContent);
+            let actualBadgeCount = parseInt(itemListBadge.textContent);
             if (actualBadgeCount > 0) {
                 itemListBadge.textContent = actualBadgeCount - 1;
             }
-            var newActualBadgeCount = parseInt(itemListBadge.textContent);
-            document.getElementById("entityLabelCount-"+label).textContent = actualCount-1
-            totalAnnotationsSpan.textContent = parseInt(totalAnnotationsSpan.textContent) - 1
+            let newActualBadgeCount = parseInt(itemListBadge.textContent);
+            document.getElementById("entityLabelCount-"+label).textContent = actualCount-1;
+            totalAnnotationsSpan.textContent = parseInt(totalAnnotationsSpan.textContent) - 1;
             if (newActualBadgeCount === 0){
                 mentionList.remove();
             }
@@ -392,16 +394,17 @@
         let itemList = target.id.split('/$-$/');
         let label = itemList[1];
         let mention = itemList[2];
-        var allAnnotations = r.getAnnotations();
-        for (var annotation in allAnnotations){
-            var m = allAnnotations[annotation].target.selector[0].exact;
-            var l = allAnnotations[annotation].body[0].value
+        let allAnnotations = r.getAnnotations();
+        for (let annotation in allAnnotations){
+            let currentAnnotations = allAnnotations[annotation];
+            let m = currentAnnotations.target.selector[0].exact;
+            let l = currentAnnotations.body[0].value;
             if (m === mention && l === label){
                 // send request to remove annotation
                 async function remove () {
-                    await sendData({destroyAll:false, destroyOne : allAnnotations[annotation]}, '/destroy_annotations')
+                    await sendData({destroyAll:false, destroyOne : currentAnnotations}, '/destroy_annotations');
                 }
-                remove();
+                remove().then();
                 // remove annotation from Textcontent
                 r.removeAnnotation(allAnnotations[annotation]);
                 // update list mentions
@@ -413,9 +416,9 @@
     // Reset list information
     function resetListsMentions(){
         const allListsMentions = document.querySelectorAll(".list-group");
-        totalAnnotationsSpan.textContent = 0;
+        totalAnnotationsSpan.textContent = "0";
         allListsMentions.forEach(function (ele) {
-            var label = ele.id.split('-')[1];
+            let label = ele.id.split('-')[1];
             document.getElementById("entityLabelCount-" + label).innerText = "0";
             ele.innerHTML = "";
         })
@@ -461,18 +464,20 @@
     function listHandler(event) {
         let span
         let target = event.target;
-        if (target.localName === "span" || target.localName === "i"){
-            if(target.localName === "i"){
-                span = target.parentNode
-            }else{
-                span = target;
-            }
-            var label = span.className;
-            var btnlist = document.getElementById("list-"+label);
-            if (btnlist.style.display === "none"){
-                btnlist.style.display = "block";
-            }else{
-                btnlist.style.display = "none";
+        if (event.type === "click"){
+            if (((target.localName === "span") && (target.id === 'entityLabel')) || (target.localName === "i")){
+                if(target.localName === "i"){
+                    span = target.parentNode;
+                }else{
+                    span = target;
+                }
+                let label = span.className;
+                let btnlist = document.getElementById("list-"+label);
+                if (btnlist.style.display === "block"){
+                    btnlist.style.display = "none";
+                }else{
+                    btnlist.style.display = "block";
+                }
             }
         }
     }
@@ -500,21 +505,22 @@
 
     // Show or hide ul elements
     function displayUl(type){
-        document.querySelectorAll('ul').forEach(function(ul, index){
+        document.querySelectorAll('ul').forEach(function(ul){
             ul.style.display = type;
         });
     }
 
     // Query mentions in lists
     function queryMentions(event) {
+        let i;
         let query = searchInput.value.toLowerCase().trim();
         let elements = document.querySelectorAll('ul > li');
         if (event.type === "focus"){
             displayUl('block');
         }
         else if (event.type === "keyup"){
-            for (var i = 0; i < elements.length; i ++) {
-                var el = elements[i];
+            for (i = 0; i < elements.length; i ++) {
+                let el = elements[i];
                 if (el.innerText.replace(/[0-9]/g, '').toLowerCase().trim().indexOf(query)  > -1){
                     el.setAttribute('style', 'display: "" !important');
                 }
@@ -527,8 +533,8 @@
             displayUl('none');
         }
         else if (event.type === "click"){
-            for (var i = 0; i < elements.length; i ++) {
-                var el = elements[i];
+            for (i = 0; i < elements.length; i ++) {
+                let el = elements[i];
                 el.setAttribute('style', 'display: ""');
             }
             displayUl('none')
