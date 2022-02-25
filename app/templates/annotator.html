@@ -3,100 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>2TAT-Demo</title>
-
-    <!-- bootstrap + JQUERY -->
+    <link rel="shortcut icon" href="#">
+    <!-- Bootstrap CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
-    <!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>-->
-
-    <link rel="shortcut icon" href="#">
     <!-- recogito CSS -->
     <link href="{{ url_for('static', filename="css/recogito.min.css") }}" rel="stylesheet" type="text/css" />
-
-    <!-- others -->
+    <!-- custom CSS -->
+    <link href="{{ url_for('static', filename="css/custom.css") }}" rel="stylesheet" type="text/css">
+    <!-- fonts -->
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.13.0/css/all.css">
+    <!-- others -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-fork-ribbon-css/0.2.3/gh-fork-ribbon.min.css" />
-
 </head>
-
-<!-- add inline CSS HTML tags and pass all to external file -->
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500&display=swap');
-
-    body{
-        background-color: #eae6e6;
-    }
-
-    .selection::selection{
-        background-color : #50c3d8;
-    }
-
-    .entityDescriptor{
-        font-size: 0.7em;
-        font-weight      : bold;
-        line-height      : 1;
-        border-radius    : 0.35em;
-        vertical-align   : middle;
-        margin-left      : 0.5em;
-        padding          : 0.20em 0.6em;
-        background-color : #f5f5f5;
-        color            : #202020;
-    }
-
-    /* spaCy annotation style CSS */
-
-    span{
-        font-weight      : bold;
-        line-height      : 1;
-        border-radius    : 0.35em;
-        vertical-align   : middle;
-        margin-left      : 0.5em;
-        padding          : 0.20em 0.6em;
-        background-color : #f5f5f5;
-        color            : #202020;
-    }
-
-    .btn{
-        margin: 2px 2px 12px 10px !important;
-    }
-
-    .colorselector-widget {
-        padding:5px;
-        border-bottom:1px solid #e5e5e5;
-    }
-
-    .badge{
-        background-color: #4f92d7;
-    }
-
-    .github-fork-ribbon:before { background-color: #333; }
-
-    .r6o-annotation {
-        border-color: transparent !important;
-    }
-
-
-</style>
 <body>
-
 <div class="container-fluid">
     <div class="row">
         <div class="col">
-            <h1 style="font-family: 'Oswald', sans-serif;">2TAT - <i>Tiny Text Annotator Template</i> -</h1>
+            <h1 id="main_title">2TAT - <i>Tiny Text Annotator Template</i> -</h1>
             <br>
-            <div style="color:#e74c3c; text-align: justify; max-width: 450px;">{{ message_info }}</div>
+            <div id="message_info">{{ message_info }}</div>
             <br>
-            <button id="added-all-annotations" class="btn btn-info" style="height: 50px; width:215px;">Reset demo annotations</button>
-            <button id="remove-all-annotations" class="btn btn-danger" style="height: 50px; width:215px;">Remove all annotations</button>
+            <button id="added-all-annotations" class="btn btn-info">Reset demo annotations</button>
+            <button id="remove-all-annotations" class="btn btn-danger">Remove all annotations</button>
             <br>
             <br>
         </div>
     </div>
 </div>
-
-
 <div class="container-fluid">
     <div class="row">
         <div class="col">
@@ -104,23 +39,22 @@
         </div>
     </div>
     <div class="row">
-        <div class="col-md-3 col-sm-3 col-sm-offset-1" style="position: relative !important;">
-
-            <h2><i class="fa fa-tag"></i><span id="total-annotation" style="background-color: #eae6e6;">0</span> Annotations</h2>
+        <div id="list-info-container" class="col-md-3 col-sm-3 col-sm-offset-1">
+            <h2><i class="fa fa-tag"></i><span id="total-annotation">0</span> Annotations</h2>
             <hr>
             <div id="number-annotations">
-                <input type="text" id="myInput"  placeholder="Search for annotations..">
+                <input type="text" id="search-input"  placeholder="Search for annotations..">
                 <input id="clear-input-text" type="submit" value="clear">
                 <i class="fa fa-question" title="Query mention in all annotations. To restore list, click on clear or annotate the text."></i>
                 <br>
                 <br>
                 {% for label, color in mapping.items() %}
-                    <span id="entityLabel" class="{{ label }}">{{label}} <i class="fa fa-angle-down" style="font-size: 13px"></i></span>
+                    <span id="entityLabel" class="{{ label }}">{{label}} <i class="fa fa-angle-down"></i></span>
                     <span id="entityLabelCount-{{ label }}">0</span>
-                    <ul id="list-{{ label }}" class="list-group" style="display: none">
+                    <ul id="list-{{ label }}" class="list-group">
                         {% for mention, count in stats_mention[label] %}
                             <li id="list-{{ label }}-{{ mention }}" class="list-state list-group-item d-flex justify-content-between align-items-center">
-                                <button id="remove/$-$/{{ label }}/$-$/{{ mention }}" class="btn btn-danger btn-sm btn-remove"><i class="fa fa-times" style="font-size: 13px"></i></button>
+                                <button id="remove/$-$/{{ label }}/$-$/{{ mention }}" class="btn btn-danger btn-sm btn-remove"><i class="fa fa-times"></i></button>
                                 {{ mention }}
                                 <span id="list-badge-{{ label }}-{{ mention }}" class="badge">{{ count }}</span>
                             </li>
@@ -131,14 +65,13 @@
                 {% endfor %}
             </div>
         </div>
-        <div class="col-md-8 col-sm-8 col-sm-offset-1" style="position: relative !important">
+        <div id="annotation-container" class="col-md-8 col-sm-8 col-sm-offset-1">
             <h2><i class="fa fa-file"></i> Text</h2>
             <hr>
-            <pre class="selection"  id="text" style="font-size:15px; text-align: justify; padding:1em 0.5em;line-height: 2em;  margin: 0; height: 50em; overflow-y:auto; white-space: pre-wrap; font-family: monospace">{{ text }}</pre>
+            <pre class="selection"  id="text">{{ text }}</pre>
         </div>
-        <!-- <div id="entity_type"></div> -->
         <div class="col-md col-sm col-sm-offset">
-            <div style="position: fixed">
+            <div id="options-selector">
                 <br>
                 <br>
                 <button class="btn btn-dark" id="zoomIn" title="zoom in"><i title="zoom in" class="fa fa-search-plus"></i></button>
@@ -151,9 +84,8 @@
     </div>
 </div>
 <!-- recogito JS -->
-<script type="text/javascript" src="{{ url_for('static', filename="js/recogito.min.js") }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename="js/recogito/recogito.min.js") }}"></script>
 <!-- recogito custom JS -->
-<script type="text/javascript" src="{{ url_for('static', filename="js/recogito.custom.js") }}"></script>
-
+<script type="text/javascript" src="{{ url_for('static', filename="js/recogito-custom/recogito.custom.js") }}"></script>
 </body>
 </html>
